@@ -1,6 +1,6 @@
-package com.example.securityservice.Repository;
+package com.example.springBlog.Repository;
 
-import com.example.securityservice.Domain.Role;
+import com.example.springBlog.Domain.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RoleRepository extends JpaRepository<Role, Long> {

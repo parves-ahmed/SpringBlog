@@ -1,11 +1,9 @@
-package com.example.securityservice.Filter;
+package com.example.springBlog.Filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.example.securityservice.DTO.LoginDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.engine.query.spi.ReturnMetadata;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,7 +12,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -39,11 +36,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         byte[] body = new byte[0];
         Map<String, String> jsonRequest = new HashMap<>();
         try {
-            String urls = request.getQueryString();
-            String getHeaderNames = String.valueOf(request.getHeaderNames());
-            String getParameterNames = String.valueOf(request.getParameterNames());
-            String getUserPrincipal = String.valueOf(request.getUserPrincipal());
-            String getRequestURL = String.valueOf(request.getRequestURL());
             body = StreamUtils.copyToByteArray(request.getInputStream());
             jsonRequest = new ObjectMapper().readValue(body, Map.class);
             System.out.println(jsonRequest.get("username"));
@@ -52,34 +44,33 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         } catch (IOException e) {
             throw new RuntimeException();
         }
-
-//        new ObjectMapper().readValue(request.getInputStream(), UsernameAndPasswordAuthenticationRequest.class);
-
-//        String userName = request.getParameter("username");
-//        String password = request.getParameter("password");
-//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userName, password);
-//        return authenticationManager.authenticate(authenticationToken);
     }
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         User user = (User)authentication.getPrincipal();
+        Collection<String> role = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        Date expiresAt = new Date(System.currentTimeMillis() + 30 * 60 * 1000);
         Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
         String access_token = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .withExpiresAt(expiresAt)
                 .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .withClaim("roles", (List<?>) role)
                 .sign(algorithm);
         String refresh_token = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 60 * 1000))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
         Map<String, String> tokens = new HashMap<>();
         tokens.put("access_token", access_token);
         tokens.put("refresh_token", refresh_token);
+        tokens.put("role", String.valueOf(role));
+        tokens.put("username", user.getUsername());
+        tokens.put("expiresAt", String.valueOf(expiresAt));
         response.setContentType(APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+//        response.setHeader("access_token", access_token);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.securityservice.Domain;
+package com.example.springBlog.Domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

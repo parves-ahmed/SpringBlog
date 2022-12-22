@@ -1,4 +1,4 @@
-package com.example.securityservice.Filter;
+package com.example.springBlog.Filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
