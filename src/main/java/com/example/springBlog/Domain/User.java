@@ -1,5 +1,6 @@
 package com.example.springBlog.Domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static javax.persistence.FetchType.*;
 
@@ -25,4 +27,7 @@ public class User {
     private String password;
     @ManyToMany(fetch = EAGER)
     private Collection<Role> roles = new ArrayList<>();
+    @OneToMany(fetch = LAZY)
+    @JsonIgnore
+    private Collection<Blog> blogs = new ArrayList<>();
 }
