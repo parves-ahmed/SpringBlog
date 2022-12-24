@@ -22,10 +22,7 @@ public class User {
     private Long id;
     private String username;
     private String email;
-    private String phoneNo;
     private String password;
-    private boolean userStatus;
-    private String userRequest;
     @ManyToMany(fetch = EAGER)
     private Collection<Role> roles = new ArrayList<>();
 }

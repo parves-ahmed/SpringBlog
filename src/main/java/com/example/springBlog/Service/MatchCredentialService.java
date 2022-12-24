@@ -21,7 +21,7 @@ public class MatchCredentialService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.getUserUsername(username);
+        User user = userService.getUserByUsername(username);
         if(user == null){
             log.error("Employee not found in the database");
             throw new UsernameNotFoundException("Employee not found in the database");

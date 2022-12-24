@@ -1,5 +1,6 @@
 package com.example.springBlog.Service;
 
+import com.example.springBlog.DTO.UserDTO;
 import com.example.springBlog.Domain.Role;
 import com.example.springBlog.Domain.User;
 
@@ -9,8 +10,9 @@ import java.util.Optional;
 public interface UserService {
     User saveUser(User user);
     Role saveRole(Role role);
+    Role getRole(String role);
     void addRoleToUser(String username, String roleName);
     Optional<User> getUserById(Long id);
-    User getUserUsername(String Username);
+    User getUserByUsername(String Username);
     List<User> getUsers();
 }

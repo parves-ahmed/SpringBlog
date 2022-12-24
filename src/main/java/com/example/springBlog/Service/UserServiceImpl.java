@@ -1,5 +1,6 @@
 package com.example.springBlog.Service;
 
+import com.example.springBlog.DTO.UserDTO;
 import com.example.springBlog.Domain.Role;
 import com.example.springBlog.Domain.User;
 import com.example.springBlog.Repository.RoleRepository;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,13 +28,24 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User saveUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        try{
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+        }
+        catch (Exception ex){
+            log.error(ex.getMessage());
+        }
+        return user;
     }
 
     @Override
     public Role saveRole(Role role) {
         return roleRepository.save(role);
+    }
+
+    @Override
+    public Role getRole(String roleName) {
+        return roleRepository.findRoleByRoleName(roleName);
     }
 
     @Override
@@ -56,7 +69,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public User getUserUsername(String username) {
+    public User getUserByUsername(String username) {
         return userRepository.findUsersByUsername(username);
     }
 
@@ -64,4 +77,14 @@ public class UserServiceImpl implements UserService{
     public List<User> getUsers() {
         return userRepository.findAll();
     }
+
+//    public User mapToModel(UserDTO userDTO){
+//        User model = new User();
+//        modelMapper.map(userDTO, model);
+//        return model;
+//    }
+//    public UserDTO mapToDto(User user){
+//        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+//        return userDTO;
+//    }
 }

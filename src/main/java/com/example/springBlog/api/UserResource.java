@@ -6,10 +6,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.springBlog.DTO.LoginDTO;
 import com.example.springBlog.DTO.RoleToUserDTO;
+import com.example.springBlog.DTO.UserDTO;
 import com.example.springBlog.Domain.Role;
 import com.example.springBlog.Domain.User;
 import com.example.springBlog.Service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-
+@Slf4j
 public class UserResource {
 
     private final UserService userService;
@@ -55,7 +57,7 @@ public class UserResource {
             DecodedJWT decodedJWT = verifier.verify(loginDTO.getRefreshToken());
 
             String username = decodedJWT.getSubject();
-            User user = userService.getUserUsername(username);
+            User user = userService.getUserByUsername(username);
             String access_token = JWT.create()
                     .withSubject(user.getUsername())
                     .withExpiresAt(new Date(System.currentTimeMillis() + 40 * 60 * 1000))
@@ -66,6 +68,18 @@ public class UserResource {
             return ResponseEntity.ok().body(tokens);
         } catch (Exception exception) {
             return ResponseEntity.internalServerError().body(exception.getMessage());
+        }
+    }
+
+    @PostMapping("/auth/register")
+    public ResponseEntity<String> register(@RequestBody User user) {
+        System.out.println(user);
+        User createdUser = userService.saveUser(user);
+        if (createdUser.getId() > 0) {
+            userService.addRoleToUser(createdUser.getUsername(), "ROLE_USER");
+            return ResponseEntity.ok().body("user saved successfully");
+        } else {
+            return ResponseEntity.badRequest().body("user saved failed");
         }
     }
 }

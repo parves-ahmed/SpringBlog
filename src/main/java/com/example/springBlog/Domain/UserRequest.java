@@ -16,7 +16,6 @@ public class UserRequest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String requestStatus;
-    private String requestType;
     @OneToOne
     private User requestedUser;
 }
