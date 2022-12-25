@@ -6,13 +6,16 @@ import com.example.springBlog.Domain.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserService {
     User saveUser(User user);
     Role saveRole(Role role);
     Role getRole(String role);
     void addRoleToUser(String username, String roleName);
-    Optional<User> getUserById(Long id);
+    Optional<UserDTO> getUserById(UUID uuid);
     User getUserByUsername(String Username);
-    List<User> getUsers();
+    List<UserDTO> getUsers();
+    UserDTO updateUser(UserDTO userDTO);
+    Boolean isUserExists(User user);
 }

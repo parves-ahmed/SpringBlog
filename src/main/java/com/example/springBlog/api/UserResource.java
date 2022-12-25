@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.springBlog.DTO.LoginDTO;
+import com.example.springBlog.DTO.ResponseMessageDTO;
 import com.example.springBlog.DTO.RoleToUserDTO;
 import com.example.springBlog.DTO.UserDTO;
 import com.example.springBlog.Domain.Role;
@@ -12,15 +13,13 @@ import com.example.springBlog.Domain.User;
 import com.example.springBlog.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,16 +30,40 @@ public class UserResource {
 
     private final UserService userService;
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getUsers(){
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<UserDTO>> getUsers(){
         System.out.println(userService.getUsers());
         return ResponseEntity.ok().body(userService.getUsers());
     }
 
-    @PostMapping("/user/save")
-    public ResponseEntity<User>saveUser(@RequestBody User user){
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
-        return ResponseEntity.created(uri).body(userService.saveUser(user));
+    @GetMapping("/admin/user/{id}")
+    public ResponseEntity<?> getUsers(@PathVariable UUID id){
+        return ResponseEntity.ok().body(userService.getUserById(id));
+    }
+
+    @PostMapping("/admin/adduser")
+    public ResponseEntity<?>saveUser(@RequestBody User user){
+        ResponseMessageDTO responseMessageDTO = new ResponseMessageDTO();
+        boolean isUserExists = userService.isUserExists(user);
+        if(!isUserExists) {
+            User savedUser = userService.saveUser(user);
+            if(savedUser.getId()>0){
+                userService.addRoleToUser(savedUser.getUsername(), "ROLE_SUPER_ADMIN");
+            }
+            responseMessageDTO.setMessage("user saved successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseMessageDTO);
+        }
+        else {
+            responseMessageDTO.setMessage("user already exists");
+            return ResponseEntity.ok().body(responseMessageDTO);
+        }
+
+    }
+
+    @PostMapping("/admin/edituser")
+    public ResponseEntity<?>editUser(@RequestBody UserDTO user){
+        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/admin/editUser").toUriString());
+        return ResponseEntity.created(uri).body(userService.updateUser(user));
     }
 
     @PostMapping("/role/addToUser")
@@ -72,14 +95,24 @@ public class UserResource {
     }
 
     @PostMapping("/auth/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user) {
+        ResponseMessageDTO responseMessageDTO = new ResponseMessageDTO();
         System.out.println(user);
-        User createdUser = userService.saveUser(user);
-        if (createdUser.getId() > 0) {
-            userService.addRoleToUser(createdUser.getUsername(), "ROLE_USER");
-            return ResponseEntity.ok().body("user saved successfully");
-        } else {
-            return ResponseEntity.badRequest().body("user saved failed");
+        boolean isUserExists = userService.isUserExists(user);
+        if(!isUserExists){
+            User createdUser = userService.saveUser(user);
+            if (createdUser.getId() > 0) {
+                userService.addRoleToUser(createdUser.getUsername(), "ROLE_USER");
+                responseMessageDTO.setMessage("Registration Successful");
+                return ResponseEntity.status(HttpStatus.CREATED).body(responseMessageDTO);
+            } else {
+                responseMessageDTO.setMessage("Registration Failed");
+                return ResponseEntity.badRequest().body(responseMessageDTO);
+            }
+        }
+        else {
+            responseMessageDTO.setMessage("user already exists");
+            return ResponseEntity.ok().body(responseMessageDTO);
         }
     }
 }

@@ -1,18 +1,16 @@
 package com.example.springBlog.api;
 
 
+import com.example.springBlog.DTO.ResponseMessageDTO;
 import com.example.springBlog.DTO.UserRequestDTO;
-import com.example.springBlog.Domain.UserRequest;
 import com.example.springBlog.Service.UserRequestService;
 import com.example.springBlog.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -31,9 +29,19 @@ public class UserRequestController {
     }
 
     @PostMapping("/user/requestAuthority")
-    public ResponseEntity<UserRequest> responseForAuthority(@RequestBody UserRequestDTO userRequestDTO, Principal principal){
+    public ResponseEntity<?> userRequest(@RequestBody UserRequestDTO userRequestDTO, Principal principal){
         log.info("Requested USer: "+ principal.getName());
         userRequestDTO.setRequestedUserName(principal.getName());
+        return ResponseEntity.ok().body(userRequestService.saveRequest(userRequestDTO));
+    }
+
+    @GetMapping("/admin/getAllUserRequests")
+    public ResponseEntity<?>  getAllUserRequests(){
+        return ResponseEntity.ok().body(userRequestService.getAllUserRequests());
+    }
+
+    @PostMapping("/admin/updateUserRequest")
+    public ResponseEntity<?> updateUserRequest(@RequestBody UserRequestDTO userRequestDTO){
         return ResponseEntity.ok().body(userRequestService.saveRequest(userRequestDTO));
     }
 }
